@@ -1,4 +1,4 @@
-import { useState, useRef, useEffect } from "react";
+import { useState, useRef, useEffect, useId, type RefObject } from "react";
 import {
   ArrowRight,
   ArrowUpRight,
@@ -15,56 +15,89 @@ import {
   ChartNoAxesCombined,
   MoveUpRight,
   Zap,
+  Lock,
+  ShieldCheck,
+  CreditCard,
+  Play,
 } from "lucide-react";
 import "./App.css";
 
 const products = [
   {
-    name: "SuperTrend",
-    author: "KivancOzbilgic",
-    url: "https://www.tradingview.com/script/r6dAP7yi/",
-    tag: "VOLATILITY MEETS DIRECTION",
+    name: "TRBOalgo",
+    url: "https://www.trboalgo.com/trboalgo",
+    price: 39,
+    listPrice: 89,
+    tag: "THE SECRET WEAPON OF WINNING TRADES",
     category: "Trend following",
     icon: Layers3,
     description:
-      "Follow changing trends with an ATR-based overlay. Adjust the period, multiplier, and smoothing method to explore how volatility shapes the trend line.",
+      "The original TrboAlgo indicator: non-repainted buy and sell signals, auto-detected support and resistance zones, and trend channel visualization. Switch between easy, basic, and aggressive modes to match your style.",
     features: [
-      "ATR-based trend overlay",
-      "Adjustable sensitivity",
-      "Trend-change alerts",
+      "Dynamic buy & sell signals",
+      "Auto entry & exit arrows",
+      "Auto-detected support/resistance zones",
+      "Built-in multi-market screener",
     ],
     variant: 0,
-    badge: "Featured",
+    badge: "",
   },
   {
-    name: "Support Resistance - Dynamic v2",
-    author: "LonesomeTheBlue",
-    url: "https://www.tradingview.com/script/va09eWAp-Support-Resistance-Dynamic-v2/",
-    tag: "FIND STRUCTURE IN PRICE",
+    name: "TRBOpro",
+    url: "https://www.trboalgo.com/trbopro",
+    price: 29,
+    listPrice: 69,
+    tag: "7+ PREMIUM INDICATORS",
     category: "Price action",
     icon: Activity,
     description:
-      "Map support and resistance from pivot-point clusters. Levels adapt as the chart develops, with controls for channel width, pivot sources, and line styling.",
+      "A leaner, faster-to-learn version of the TrboAlgo engine: clear entry/exit signals, trend channel context, and auto trendline detection, tuned for traders who want the core signal set without the extras.",
     features: [
-      "Dynamic price levels",
-      "Pivot-point analysis",
-      "Configurable channels",
+      "Auto entry & exit arrows",
+      "Trend channel visualization",
+      "Auto trendline detection",
+      "Easy, basic & aggressive modes",
     ],
     variant: 1,
     badge: "",
   },
   {
-    name: "Squeeze Momentum Indicator [LazyBear]",
-    author: "LazyBear",
-    url: "https://www.tradingview.com/script/nqQ1DT5a-Squeeze-Momentum-Indicator-LazyBear/",
-    tag: "READ THE RHYTHM OF VOLATILITY",
-    category: "Momentum",
+    name: "TRBOalgo + TRBOpro",
+    url: "https://www.trboalgo.com/trboalgo-pro",
+    price: 49,
+    listPrice: 199,
+    tag: "TWO INDICATORS, ONE PACKAGE",
+    category: "Bundles",
+    icon: Layers3,
+    description:
+      "Get TRBOalgo and TRBOpro as two individual scripts in one purchase — the full signal set plus the leaner companion tool, both non-repainted and ready for your chart.",
+    features: [
+      "Two full indicator scripts",
+      "Dynamic buy & sell signals",
+      "Auto support/resistance zones",
+      "Built-in multi-market screener",
+    ],
+    variant: 2,
+    badge: "Offer expires soon",
+  },
+  {
+    name: "TRBOalgo 2.0 + TRBOpro",
+    url: "https://www.trboalgo.com/bundle-deal",
+    price: 49,
+    listPrice: 299,
+    tag: "ALL PREMIUM INDICATORS, ONE SCRIPT",
+    category: "Bundles",
     icon: Crosshair,
     description:
-      "Explore volatility compression through Bollinger Bands and Keltner Channels. A momentum histogram adds context as conditions shift between squeeze and release.",
-    features: ["Squeeze detection", "Momentum histogram", "Volatility context"],
-    variant: 2,
-    badge: "",
+      "The flagship bundle: TRBO Trend, TRBO Screener, TRBO Cloud, and order-block detection combined into a single script, with sharper entry/exit signals and adjustable sensitivity for advanced setups.",
+    features: [
+      "TRBO Trend & TRBO Cloud heat meter",
+      "Order block detection",
+      "Multi-timeframe screener",
+      "Device alerts (with TradingView subscription)",
+    ],
+    variant: 0,
+    badge: "Featured",
   },
 ];
 type Product = (typeof products)[number];
@@ -75,6 +108,7 @@ function Chart({
   variant?: number;
   hero?: boolean;
 }) {
+  const chartId = useId();
   const values = Array.from(
     { length: 65 },
     (_, i) =>
@@ -95,7 +129,7 @@ function Chart({
     >
       <defs>
         <linearGradient
-          id={`fill-${variant}-${hero}`}
+          id={`fill-${chartId}`}
           x1="0"
           y1="0"
           x2="0"
@@ -148,14 +182,18 @@ function Chart({
         </>
       )}
       <path
+        className="chart-area"
         d={`${path} L 494 216 L20 216 Z`}
-        fill={`url(#fill-${variant}-${hero})`}
+        fill={`url(#fill-${chartId})`}
       />
-      <path d={path} fill="none" stroke="#9789dd" strokeWidth="1.8" />
+      <path className="chart-trend" pathLength="1" d={path} fill="none" stroke="#9789dd" strokeWidth="1.8" />
+      <path className="chart-flow" pathLength="1" d={path} fill="none" stroke="#533afd" strokeWidth="3" />
+      <circle className="chart-pulse" cx="493.6" cy={values[64] + 24} r="6" fill="#533afd" />
+      <circle cx="493.6" cy={values[64] + 24} r="3" fill="#533afd" />
       {values.map((v, i) => {
         const rising = Math.cos(i * 1.6) > -0.25;
         return (
-          <g key={i} stroke={rising ? "#6355b3" : "#a8a8bb"}>
+          <g className="chart-candle" style={{ animationDelay: `${i * 35}ms` }} key={i} stroke={rising ? "#6355b3" : "#a8a8bb"}>
             <line x1={20 + i * 7.4} x2={20 + i * 7.4} y1={v - 9} y2={v + 13} />
             <rect
               x={17.8 + i * 7.4}
@@ -169,6 +207,7 @@ function Chart({
         );
       })}
       <line
+        className="chart-price-line"
         x1="0"
         y1={values[64]}
         x2="505"
@@ -222,11 +261,42 @@ function Chart({
     </svg>
   );
 }
+function useInView<T extends HTMLElement>(ref: RefObject<T | null>) {
+  const [inView, setInView] = useState(
+    () => window.matchMedia("(prefers-reduced-motion: reduce)").matches,
+  );
+  useEffect(() => {
+    const el = ref.current;
+    if (!el || inView) return;
+    const observer = new IntersectionObserver(
+      ([entry]) => {
+        if (entry.isIntersecting) {
+          setInView(true);
+          observer.disconnect();
+        }
+      },
+      { threshold: 0.15 },
+    );
+    observer.observe(el);
+    return () => observer.disconnect();
+  }, [ref, inView]);
+  return inView;
+}
+
 function App() {
   const [category, setCategory] = useState("All scripts");
   const [search, setSearch] = useState("");
   const [menuOpen, setMenuOpen] = useState(false);
   const [selected, setSelected] = useState<Product | null>(null);
+  const [videoPlaying, setVideoPlaying] = useState(false);
+  const whyRef = useRef<HTMLElement | null>(null);
+  const whyInView = useInView(whyRef);
+  const howRef = useRef<HTMLElement | null>(null);
+  const howInView = useInView(howRef);
+  const faqRef = useRef<HTMLElement | null>(null);
+  const faqInView = useInView(faqRef);
+  const closingRef = useRef<HTMLElement | null>(null);
+  const closingInView = useInView(closingRef);
   const dialog = useRef<HTMLDialogElement>(null);
   useEffect(() => {
     if (selected) dialog.current?.showModal();
@@ -235,15 +305,19 @@ function App() {
   const filtered = products.filter(
     (p) =>
       (category === "All scripts" || p.category === category) &&
-      `${p.name} ${p.author} ${p.description} ${p.features.join(" ")}`
+      `${p.name} ${p.description} ${p.features.join(" ")}`
         .toLowerCase()
         .includes(search.toLowerCase()),
   );
   return (
     <>
+      <div className="bg-indigo-ink text-white text-[11px] font-normal text-center py-2 px-4">
+        One-time payment, own it forever — 10% off with code{" "}
+        <span className="font-semibold tracking-wide">EXCL10</span>
+      </div>
       <header className="site-header">
         <div className="container flex items-center justify-between h-full">
-          <a href="#" className="wordmark" aria-label="Trboalgo home">
+          <a href="#" className="wordmark" aria-label="TrboAlgo home">
             <span className="brand-mark">ϟ</span>trbo<span>algo</span>
             <span className="brand-dot">.</span>
           </a>
@@ -255,7 +329,7 @@ function App() {
               Script collection
             </a>
             <a href="#why" onClick={() => setMenuOpen(false)}>
-              Why Trboalgo
+              Why TrboAlgo
             </a>
             <a href="#how-it-works" onClick={() => setMenuOpen(false)}>
               How it works
@@ -358,35 +432,43 @@ function App() {
             </div>
           </div>
         </section>
-        <div className="compatibility container">
-          <span>Different tools. Different markets.</span>
-          <div>
-            <Activity size={17} /> Forex
+        <div className="compatibility-outer">
+          <div className="compatibility container">
+            <span className="marquee-label">Different tools.<br />Different markets.</span>
+            <div className="marquee-viewport">
+            <div className="marquee-track">
+            {[0, 1, 2, 3].map((i) => (
+              <div className="marquee-group" key={i} aria-hidden={i > 0}>
+                <div>
+                  <Activity size={17} /> Forex
+                </div>
+                <div>
+                  <span className="bitcoin">₿</span> Crypto
+                </div>
+                <div>
+                  <ChartNoAxesCombined size={18} /> Stocks
+                </div>
+                <div>
+                  <Layers3 size={17} /> Indices
+                </div>
+              </div>
+            ))}
+            </div>
+            </div>
+            <span className="built-on marquee-platform">
+              Built for
+              <strong><span className="tv-mark">Tᵛ</span> TradingView</strong>
+            </span>
           </div>
-          <div>
-            <span className="bitcoin">₿</span> Crypto
-          </div>
-          <div>
-            <ChartNoAxesCombined size={18} /> Stocks
-          </div>
-          <div>
-            <Layers3 size={17} /> Indices
-          </div>
-          <span className="built-on">
-            Built for{" "}
-            <strong>
-              <span className="tv-mark">Tᵛ</span> TradingView
-            </strong>
-          </span>
         </div>
         <section className="catalog container" id="scripts">
           <div className="section-heading">
             <div>
-              <div className="eyebrow">THE COMMUNITY SCRIPT COLLECTION</div>
-              <h2>Your next edge starts here.</h2>
+              <div className="eyebrow">THE TRBOALGO INDICATOR COLLECTION</div>
+              <h2>Your next edge<br />starts <span className="catalog-accent">here.</span></h2>
               <p>
-                Discover community-built TradingView scripts, curated for
-                clearer analysis.
+                Discover the TrboAlgo indicator lineup, built for clearer
+                analysis.
               </p>
             </div>
             <span className="collection-note">
@@ -399,7 +481,7 @@ function App() {
                 "All scripts",
                 "Trend following",
                 "Price action",
-                "Momentum",
+                "Bundles",
               ].map((c) => (
                 <button
                   key={c}
@@ -433,7 +515,12 @@ function App() {
                     <span>
                       {p.name} <span> / BTCUSD · 1h</span>
                     </span>
-                    {p.badge && <span className="featured">{p.badge}</span>}
+                    {p.badge === "Featured" && (
+                      <span className="featured">{p.badge}</span>
+                    )}
+                    {p.badge === "Offer expires soon" && (
+                      <span className="offer-badge">{p.badge}</span>
+                    )}
                   </div>
                   <Chart variant={p.variant} />
                   <span className="preview-watermark">
@@ -449,26 +536,37 @@ function App() {
                     {p.name}
                     <ArrowUpRight size={21} />
                   </h3>
-                  <a
-                    className="script-author"
-                    href={`https://www.tradingview.com/u/${p.author}/`}
-                    target="_blank"
-                    rel="noreferrer"
-                  >
-                    by {p.author} <ArrowUpRight size={11} />
-                  </a>
                   <p>{p.description}</p>
                   <div className="feature-tags">
                     {p.features.slice(0, 2).map((f) => (
                       <span key={f}>{f}</span>
                     ))}
                   </div>
-                  <button
-                    className="product-link"
-                    onClick={() => setSelected(p)}
-                  >
-                    Explore script <ArrowRight size={16} />
-                  </button>
+                  <div className="product-price">
+                    <span className="text-[11px] text-smoke line-through">
+                      ${p.listPrice.toFixed(2)}
+                    </span>
+                    <span className="text-[15px] font-normal text-midnight-ink">
+                      ${p.price.toFixed(2)}
+                    </span>
+                    <small>one-time payment</small>
+                  </div>
+                  <div className="product-actions">
+                    <button
+                      className="product-details-button"
+                      onClick={() => setSelected(p)}
+                    >
+                      View details <ArrowRight size={15} />
+                    </button>
+                    <a
+                      href={p.url}
+                      target="_blank"
+                      rel="noreferrer"
+                      className="product-buy-button"
+                    >
+                      Buy Now <ArrowUpRight size={13} />
+                    </a>
+                  </div>
                 </div>
               </article>
             ))}
@@ -490,11 +588,76 @@ function App() {
             </div>
           )}
           <div className="catalog-note">
-            <Code2 size={15} /> Community scripts by their original authors.
-            AI-written summaries based on published descriptions.
+            <Code2 size={15} /> TrboAlgo's own indicators. AI-written
+            summaries based on published feature lists.
+          </div>
+          <div className="flex flex-wrap items-center justify-center gap-x-8 gap-y-3 mt-8 pt-8 border-t border-frost text-[11px] text-steel">
+            <span className="flex items-center gap-2">
+              <Lock size={15} className="text-indigo-ink" /> Guaranteed safe
+              checkout
+            </span>
+            <span className="flex items-center gap-2">
+              <ShieldCheck size={15} className="text-indigo-ink" /> Money-back
+              guarantee
+            </span>
+            <span className="flex items-center gap-2">
+              <CreditCard size={15} className="text-indigo-ink" /> Payments
+              secured by Stripe
+            </span>
           </div>
         </section>
-        <section id="why" className="why-section">
+        <section className="video-section container">
+          <div className="video-panel">
+          <div className="video-copy">
+            <div className="eyebrow">SEE IT IN ACTION</div>
+            <h2>From setup<br />to your first signal.</h2>
+            <p className="video-description">
+              A quick walkthrough of adding a TrboAlgo indicator to your
+              TradingView chart.
+            </p>
+            <div className="video-chapters">
+              <span><b>01</b> Add your indicator <ArrowUpRight size={15} /></span>
+              <span><b>02</b> Make the chart yours <SlidersHorizontal size={15} /></span>
+              <span><b>03</b> Find your perspective <Activity size={15} /></span>
+            </div>
+            <span className="video-platform"><Code2 size={15} /> Made for TradingView</span>
+          </div>
+          <div className="video-player">
+            {videoPlaying ? (
+              <iframe
+                className="w-full h-full"
+                src="https://www.youtube.com/embed/oZgAAA_F2Ts?autoplay=1"
+                title="How to upload indicator — TrboAlgo"
+                allow="accelerometer; autoplay; encrypted-media; picture-in-picture"
+                allowFullScreen
+              />
+            ) : (
+              <button
+                className="video-poster"
+                onClick={() => setVideoPlaying(true)}
+                aria-label="Play video: How to upload indicator"
+              >
+                <img
+                  src="https://img.youtube.com/vi/oZgAAA_F2Ts/hqdefault.jpg"
+                  alt="How to upload indicator — video thumbnail"
+                  className="w-full h-full object-cover"
+                />
+                <span className="video-overlay">
+                  <span className="video-play">
+                    <Play size={26} fill="currentColor" />
+                  </span>
+                  <span className="video-caption"><small>THE TRBOALGO WALKTHROUGH</small><strong>A clearer chart starts here.</strong><span>Watch the setup guide <ArrowUpRight size={16} /></span></span>
+                </span>
+              </button>
+            )}
+          </div>
+          </div>
+        </section>
+        <section
+          id="why"
+          ref={whyRef}
+          className={`why-section transition-all duration-500 ease-out ${whyInView ? "opacity-100 translate-y-0" : "opacity-0 translate-y-3"}`}
+        >
           <div className="container">
             <div className="eyebrow">PURPOSE OVER COMPLEXITY</div>
             <div className="why-heading">
@@ -504,8 +667,8 @@ function App() {
                 Your own decisions.
               </h2>
               <p>
-                Your process comes first. These community scripts bring context
-                to your charts, so you can spend less time decoding and more
+                Your process comes first. These indicators bring context to
+                your charts, so you can spend less time decoding and more
                 time understanding.
               </p>
             </div>
@@ -536,7 +699,11 @@ function App() {
             </div>
           </div>
         </section>
-        <section id="how-it-works" className="container how-section">
+        <section
+          id="how-it-works"
+          ref={howRef}
+          className={`container how-section transition-all duration-500 ease-out ${howInView ? "opacity-100 translate-y-0" : "opacity-0 translate-y-3"}`}
+        >
           <div className="eyebrow">FROM DISCOVERY TO YOUR CHART</div>
           <h2>A simpler way to get started.</h2>
           <div className="steps">
@@ -547,11 +714,11 @@ function App() {
               },
               {
                 title: "Get to know the setup",
-                text: "Open the original TradingView publication to review author notes, settings, and access details.",
+                text: "Visit the TrboAlgo shop to review pricing, settings, and access details.",
               },
               {
                 title: "Make it your own",
-                text: "Use the script’s TradingView page to add it to your chart, then explore its settings.",
+                text: "Once purchased, follow TrboAlgo’s setup guide to add it to your TradingView chart, then explore its settings.",
               },
             ].map((s, i) => (
               <div key={s.title}>
@@ -562,7 +729,11 @@ function App() {
             ))}
           </div>
         </section>
-        <section className="container faq-section" id="faq">
+        <section
+          id="faq"
+          ref={faqRef}
+          className={`container faq-section transition-all duration-500 ease-out ${faqInView ? "opacity-100 translate-y-0" : "opacity-0 translate-y-3"}`}
+        >
           <div>
             <div className="eyebrow">A LITTLE MORE CONTEXT</div>
             <h2>
@@ -587,11 +758,11 @@ function App() {
               },
               {
                 q: "How do I add a script to TradingView?",
-                a: "Open a script’s details and follow the View on TradingView link. Sign in to TradingView and use the original publication’s chart controls. Check the author’s notes for setup instructions and updates.",
+                a: "Open a product’s details and follow the link to the TrboAlgo shop. After purchase, follow TrboAlgo’s setup guide to add the indicator to your TradingView chart.",
               },
               {
                 q: "Which markets can I use these tools on?",
-                a: "Compatibility varies by script, symbol, and timeframe. Read the original author’s documentation and test the settings on your chosen market before relying on the output.",
+                a: "Compatibility varies by product, symbol, and timeframe. Read TrboAlgo’s documentation and test the settings on your chosen market before relying on the output.",
               },
               {
                 q: "Do these scripts guarantee profitable trades?",
@@ -608,7 +779,10 @@ function App() {
             ))}
           </div>
         </section>
-        <section className="closing container">
+        <section
+          ref={closingRef}
+          className={`closing container transition-all duration-500 ease-out ${closingInView ? "opacity-100 translate-y-0" : "opacity-0 translate-y-3"}`}
+        >
           <div>
             <div className="eyebrow">A CLEARER CHART STARTS HERE</div>
             <h2>Find the tool that fits your thinking.</h2>
@@ -626,6 +800,17 @@ function App() {
               <span className="brand-dot">.</span>
             </a>
             <span>Built for clarity. Designed for traders.</span>
+            <span className="text-steel">
+              Developed by{" "}
+              <a
+                href="https://www.shivantra.com"
+                target="_blank"
+                rel="noreferrer"
+                className="text-indigo-ink hover:text-indigo-hover font-normal"
+              >
+                Shivantra
+              </a>
+            </span>
             <a
               href="https://in.tradingview.com/scripts/"
               target="_blank"
@@ -636,12 +821,12 @@ function App() {
           </div>
           <div className="footer-bottom">
             <span>
-              © {new Date().getFullYear()} Trboalgo. All rights reserved.
+              © {new Date().getFullYear()} TrboAlgo. All rights reserved.
             </span>
             <p>
               Trading involves risk. These tools are for informational purposes
               and do not constitute financial advice. Chart previews are
-              illustrative. Trboalgo is not affiliated with TradingView.
+              illustrative. TrboAlgo is not affiliated with TradingView.
             </p>
           </div>
         </div>
@@ -665,14 +850,6 @@ function App() {
               </button>
               <div className="eyebrow">{selected.tag}</div>
               <h2>{selected.name}</h2>
-              <a
-                className="script-author"
-                href={`https://www.tradingview.com/u/${selected.author}/`}
-                target="_blank"
-                rel="noreferrer"
-              >
-                by {selected.author} <ArrowUpRight size={12} />
-              </a>
               <Chart variant={selected.variant} />
               <p>{selected.description}</p>
               <h3>Explore the capabilities</h3>
@@ -685,9 +862,8 @@ function App() {
                 ))}
               </ul>
               <p className="detail-note">
-                Open-source community script. Read the original publication for
-                current instructions and author updates. This chart is
-                illustrative; the summary is AI-written.
+                Official TrboAlgo indicator. This chart is illustrative; the
+                summary is AI-written.
               </p>
               <a
                 href={selected.url}
@@ -695,7 +871,11 @@ function App() {
                 rel="noreferrer"
                 className="button primary"
               >
-                View on TradingView <MoveUpRight size={16} />
+                Buy Now — ${selected.price.toFixed(2)}{" "}
+                <span className="line-through opacity-60 ml-1">
+                  ${selected.listPrice.toFixed(2)}
+                </span>
+                <MoveUpRight size={16} />
               </a>
             </>
           )}
